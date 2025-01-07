@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 import dbConnect from "@/lib/dbConnect";
 import BlogModel from "@/model/Blog.model";
 import { NextResponse } from "next/server";
+
 
 export async function GET() {
   // Establish database connection

@@ -30,6 +30,7 @@ const BlogCard = ({ blog, forUser, onBlogDeleted }: BlogCardProps) => {
                 toast({ title: "Error", description: response.data.message, variant: "destructive" });
             }
         } catch (error) {
+            console.log(error);
             toast({ title: "Error", description: "Failed to delete the blog.", variant: "destructive" });
         }
     };

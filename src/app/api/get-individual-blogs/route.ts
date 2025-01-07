@@ -1,4 +1,4 @@
-import BlogModel, { Blog } from "@/model/Blog.model";
+import BlogModel from "@/model/Blog.model";
 import dbConnect from "@/lib/dbConnect";
 import mongoose from "mongoose";
 import UserModel from "@/model/User.model";

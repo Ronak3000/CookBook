@@ -1,5 +1,4 @@
 import mongoose, { Schema , Document} from "mongoose";
-import { BlogSchema, Blog } from "./Blog.model";
 
 
 export interface User extends Document {

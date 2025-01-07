@@ -1,5 +1,6 @@
 "use client"
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Inspired by react-hot-toast library
 import * as React from "react"
 

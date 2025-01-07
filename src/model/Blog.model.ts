@@ -1,4 +1,4 @@
-import mongoose, {Document, mongo, Schema} from "mongoose";
+import mongoose, {Document, Schema} from "mongoose";
 
 export interface Blog extends Document{
     ownedById: mongoose.Types.ObjectId,

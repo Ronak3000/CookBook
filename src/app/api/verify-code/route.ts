@@ -1,9 +1,7 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User.model";
 import { verifySchema } from "@/schemas/verifySchema";
-import { log } from "node:console";
 
-import {z} from "zod"
 
 export async function POST(request:Request){
     await dbConnect()
@@ -61,6 +59,7 @@ export async function POST(request:Request){
         }
 
     } catch (error) {
+        console.log(error)
         return Response.json({
             success: false,
             message: "there was an error checking the verification code"

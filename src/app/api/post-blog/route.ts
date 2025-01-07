@@ -4,7 +4,6 @@ import { authOptions } from "../auth/[...nextauth]/options";
 import dbConnect from "@/lib/dbConnect";
 import BlogModel from "@/model/Blog.model";
 import mongoose from "mongoose";
-import UserModel from "@/model/User.model";
 
 export async function POST(requset: Request){
     await dbConnect()
@@ -50,6 +49,7 @@ export async function POST(requset: Request){
         },{status: 200})
 
     } catch (error) {
+        console.log(error)
         return Response.json({
             success: false,
             message: "Something went wrong while posting the blog"

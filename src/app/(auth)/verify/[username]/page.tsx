@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useParams, useRouter } from "next/navigation"
 
-const page = () => {
+const Page = () => {
   const form = useForm({
     resolver: zodResolver(verifySchema),
     defaultValues: {
@@ -51,21 +51,15 @@ const page = () => {
           variant: "destructive",
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error)
-      if (error.response && error.response.data && error.response.data.message) {
+      
         toast({
           title: "Verification Failed",
-          description: error.response.data.message,
+          description: "Failed to verify code",
           variant: "destructive",
         })
-      } else {
-        toast({
-          title: "Verification Failed",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        })
-      }
+      
     }
   }
 
@@ -112,4 +106,4 @@ const page = () => {
   )
 }
 
-export default page
+export default Page

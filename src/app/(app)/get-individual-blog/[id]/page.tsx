@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Blog } from "@/model/Blog.model";
 import Navbar from "@/components/Navbar";
-import { useSession } from "next-auth/react";
 import Footer from "@/components/Footer";
 
 const Page = () => {
@@ -15,7 +14,6 @@ const Page = () => {
   const { toast } = useToast();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [owner, setOwner] = useState<string | null>("No Owner");
-  const router = useRouter()
 
   
 
@@ -43,6 +41,7 @@ const Page = () => {
           });
         }
       } catch (error) {
+        console.log(error);
         toast({
           title: "Error",
           description: "Failed to fetch blog",

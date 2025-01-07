@@ -22,7 +22,7 @@ import { useDebounceCallback } from "usehooks-ts"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
-const page = () => {
+const Page = () => {
   const [username, setUsername] = useState("")
   const [isCheckingUsername, setIsCheckingUsername] = useState(false)
   const [usernameMessage, setUsernameMessage] = useState("")
@@ -220,4 +220,4 @@ const page = () => {
   )
 }
 
-export default page
+export default Page

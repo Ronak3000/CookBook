@@ -4,7 +4,6 @@ import Navbar from '@/components/Navbar'
 import { useToast } from '@/hooks/use-toast'
 import { Blog } from '@/model/Blog.model'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import React, { useState, useEffect, useCallback } from 'react'
 import BlogCard from '@/components/BlogCard'
@@ -12,8 +11,6 @@ import Footer from '@/components/Footer'
 
 const Page = () => {
   const router = useRouter()
-  const { data: session } = useSession()
-  const user = session?.user
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)

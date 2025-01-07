@@ -91,6 +91,7 @@ const Page = () => {
         });
       }
     } catch (error) {
+      console.log(error);
       toast({
         title: 'Error',
         description: 'Something went wrong while fetching the recipe.',

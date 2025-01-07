@@ -53,11 +53,11 @@ const Page = () => {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
         description:
-          error.response?.data?.message || "Failed to post blog. Try again.",
+          "Failed to post blog. Try again.",
         variant: "destructive",
       });
     } finally {
