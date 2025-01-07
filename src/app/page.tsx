@@ -1,4 +1,5 @@
-import Image from "next/image";
+'use client';
+
 import Page from "./(app)/dashboard/page";
 
 export default function Home() {

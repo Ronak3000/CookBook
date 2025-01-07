@@ -11,9 +11,6 @@ import BlogCard from '@/components/BlogCard'
 import Footer from '@/components/Footer'
 
 const Page = () => {
-  const router = useRouter()
-  const { data: session } = useSession()
-  const user = session?.user
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)
@@ -33,6 +30,7 @@ const Page = () => {
           description: 'Blogs fetched successfully',
         })
       } catch (error) {
+        console.log(error)
         toast({
           title: 'Error',
           description: 'No blogs found',
