@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Lightbulb, Book } from 'lucide-react';
+import { Pencil, Lightbulb, Book, Search } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -12,6 +12,15 @@ const Footer = () => {
           <Pencil className="w-5 h-5" />
           <span className="text-xs">Post</span>
         </a>
+
+        <a
+          href="/search-blog"
+          className="flex flex-col items-center space-y-1 hover:text-yellow-400 transition duration-200"
+        >
+          <Search className="w-5 h-5" />
+          <span className="text-xs">Search</span>
+        </a>
+
         <a
           href="/suggest"
           className="flex flex-col items-center space-y-1 hover:text-yellow-400 transition duration-200"
