@@ -1,56 +1,19 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/options";
-import dbConnect from "@/lib/dbConnect";
-import BlogModel from "@/model/Blog.model";
-import mongoose from "mongoose";
-
-export async function GET() {
-    try {
-        await dbConnect()
-        const session = await getServerSession(authOptions)
-        const user = session?.user
-
-        if(!session || !user){
-            return Response.json({
-                success: false,
-                message: "You have to sign in to see blogs"
-            }, {
-                status: 401
-            })
-        }
-        const userId = new mongoose.Types.ObjectId(user._id as string)
-        // finding Blogs by aggregate pipeline
-        const blogsByPipe = await BlogModel.aggregate([
-            {
-                $match:{
-                    ownedById: userId
-                }
-            },
-            {
-                $sort:{
-                    createdAt: -1
-                }
-            },{
-                $project:{
-                    _id:1,
-                    title:1,
-                    createdAt:1
-                }
-            }
-        ]).exec()
-        return  Response.json({
-            success: true,
-            data: blogsByPipe
-        },{
-            status: 200})
-
-    } catch (error) {
-        console.log(error)
-        return Response.json({
-            success: false,
-            message: "Error getting user blogs"
-        },{
-            status: 500
-        })
-    }
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/options';
+import dbConnect from '@/lib/dbConnect';
+import { getRecipePage, parseRecipeQuery, RecipeQueryError } from '@/lib/recipePagination';
+import mongoose from 'mongoose';
+export async function GET(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    const ownerId = session?.user?._id;
+    if (!ownerId || !mongoose.isValidObjectId(ownerId)) return Response.json({ success: false, message: 'Please sign in to open your cookbook.' }, { status: 401 });
+    const query = parseRecipeQuery(request.url);
+    await dbConnect();
+    return Response.json(await getRecipePage(query, ownerId), { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch (error) {
+    if (error instanceof RecipeQueryError) return Response.json({ success: false, message: error.message }, { status: 400 });
+    console.error('Personal cookbook unavailable');
+    return Response.json({ success: false, message: 'Unable to load your cookbook. Please try again.' }, { status: 503 });
+  }
 }
