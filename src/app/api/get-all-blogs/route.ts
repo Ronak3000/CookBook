@@ -1,15 +1,13 @@
-import dbConnect from "@/lib/dbConnect";
-import BlogModel from "@/model/Blog.model";
-import { NextResponse } from "next/server";
-
-export async function GET() {
+import dbConnect from '@/lib/dbConnect';
+import { getRecipePage, parseRecipeQuery, RecipeQueryError } from '@/lib/recipePagination';
+export async function GET(request: Request) {
   try {
+    const query = parseRecipeQuery(request.url);
     await dbConnect();
-    const blogs = await BlogModel.find().sort({ createdAt: -1 })
-      .select({ _id: 1, title: 1, createdAt: 1 }).lean();
-    return NextResponse.json({ success: true, data: blogs });
+    return Response.json(await getRecipePage(query), { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    console.error("Recipe collection unavailable:", error instanceof Error ? error.message : "Connection failed");
-    return NextResponse.json({ success: false, message: "The recipe collection is temporarily unavailable. Please try again shortly." }, { status: 503 });
+    if (error instanceof RecipeQueryError) return Response.json({ success: false, message: error.message }, { status: 400 });
+    console.error('Recipe collection unavailable');
+    return Response.json({ success: false, message: 'The recipe collection is temporarily unavailable. Please try again shortly.' }, { status: 503 });
   }
 }

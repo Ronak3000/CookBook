@@ -1,68 +1,29 @@
-import dbConnect from "@/lib/dbConnect";
-import BlogModel, { Blog } from "@/model/Blog.model";
-import { searchWordSchema } from "@/schemas/searchWordSchema";
-
+import { z } from 'zod';
+import dbConnect from '@/lib/dbConnect';
+import { getRecipePage, parseRecipeQuery, RecipeQueryError } from '@/lib/recipePagination';
+import { recipeCategories } from '@/types/recipes';
+const searchSchema = z.object({
+  searchWord: z.string().trim().max(100),
+  limit: z.number().int().min(1).max(36).default(12),
+  cursor: z.string().max(512).optional(),
+  category: z.enum(recipeCategories).default('All recipes'),
+});
 export async function POST(request: Request) {
-    try {
-        await dbConnect()
-
-        const {searchWord} = await request.json()
-
-        const allBlogs = await BlogModel.find()
-            .sort({ createdAt: -1 })
-            .select({ _id: 1, title: 1, createdAt:1});
-
-        if(!allBlogs){
-            return Response.json({
-                success: false,
-                message: "No blogs found."
-            }, {
-                status: 404
-            })
-        }
-        const trimmedSearchWord = searchWord.trim()
-        const queryParam = {
-            searchWord: trimmedSearchWord
-        }
-        // validate with zod
-        const result = searchWordSchema.safeParse(queryParam)
-
-
-
-        if(!result.success) {
-            const usernameErrors = result.error.format().searchWord?._errors || []
-
-            return Response.json({success: false, message: usernameErrors?.length>0 ? usernameErrors.join(', '): "Invalid search"}, {status: 400})
-        }
-
-        let searchSpecificBlogs = allBlogs
-        if(trimmedSearchWord.length !== 0){
-            searchSpecificBlogs = allBlogs.filter((blog: Blog)=>{
-                if(blog.title.toLowerCase().includes(trimmedSearchWord.toLowerCase())) return blog
-            })
-        }
-
-
-        if(!searchSpecificBlogs || searchSpecificBlogs.length === 0){
-            return Response.json({
-                success: false,
-                message: "No blogs found with the search word."
-            }, {
-                status: 404
-            })
-        }
-
-        return Response.json({
-            success: true,
-            data: searchSpecificBlogs,
-            message: "Found related Blogs"
-        },{status: 200})
-
-
-    } catch (error) {
-        return Response.json({
-            success: false,
-            message: `error getting Individual blogs: ${error}`
-        },{status: 500})
-    }
+  let body: unknown;
+  try { body = await request.json(); } catch { return Response.json({ success: false, message: 'Send a valid search request.' }, { status: 400 }); }
+  const result = searchSchema.safeParse(body);
+  if (!result.success) return Response.json({ success: false, message: 'Use a search of at most 100 characters and a limit from 1–36.' }, { status: 400 });
+  try {
+    const url = new URL(request.url);
+    url.searchParams.set('q', result.data.searchWord);
+    url.searchParams.set('limit', String(result.data.limit));
+    url.searchParams.set('category', result.data.category);
+    if (result.data.cursor) url.searchParams.set('cursor', result.data.cursor);
+    const query = parseRecipeQuery(url.href);
+    await dbConnect();
+    return Response.json(await getRecipePage(query));
+  } catch (error) {
+    if (error instanceof RecipeQueryError) return Response.json({ success: false, message: error.message }, { status: 400 });
+    return Response.json({ success: false, message: 'Unable to search recipes. Please try again.' }, { status: 503 });
+  }
 }
