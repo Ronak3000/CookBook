@@ -1,81 +1,50 @@
-'use client'
+'use client';
 
-import Navbar from '@/components/Navbar'
-import { useToast } from '@/hooks/use-toast'
-import { Blog } from '@/model/Blog.model'
-import axios from 'axios'
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ChefHat, Search, Utensils, X } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import BlogCard from '@/components/BlogCard';
+import type { Blog } from '@/model/Blog.model';
 
-import React, { useState, useEffect, useCallback } from 'react'
-import BlogCard from '@/components/BlogCard'
-import Footer from '@/components/Footer'
-
-const Page = () => {
-  const { toast } = useToast()
-
-  const [loading, setLoading] = useState(false)
-  const [blogs, setBlogs] = useState<Blog[]>([])
-
-  const onBlogDeleted = (id: string) => {
-    setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog._id !== id))
-  }
-
-  const getAllBlogs = useCallback(async()=>{
-    setLoading(true)
-      try {
-        const response = await axios.get('/api/get-all-blogs')
-        setBlogs(response.data.data)
-        toast({
-          title: 'Success',
-          description: 'Blogs fetched successfully',
-        })
-      } catch (error) {
-        console.log(error)
-        toast({
-          title: 'Error',
-          description: 'No blogs found',
-          variant: 'destructive',
-        })
-      } finally {
-        setLoading(false)
-      }
-    
-  },[setLoading, setBlogs])
-
-  useEffect(() => {
-    getAllBlogs()
-  }, [setBlogs, getAllBlogs]) 
-
-  return (
-    <>
-    <header>
-    <Navbar />
-    </header>
-    <main className="flex-grow pt-16 pb-16 bg-gray-100">
-    <div>
-      
-      <div className="container mx-auto px-4 py-8">
-        {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
-        ) : blogs.length==0?(<>
-          <p className="text-center text-gray-500">No blogs found</p>
-        </>) :(
-          <div className="grid gap-6">
-            {blogs.map((blog: Blog) => (
-              <div key={blog._id as string} className="p-4 border rounded shadow">
-                <BlogCard blog={blog} forUser={false} onBlogDeleted={onBlogDeleted} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-    </main>
-    <footer>
-      <Footer />
-    </footer>
-    </>
-    
-  )
+const categories = ['All recipes', 'Quick & easy', 'Vegetarian', 'Comfort food', 'Sweet treats'];
+const ideas = [
+  { title: 'A little heat. A lot of comfort.', label: 'THE WEEKNIGHT EDIT', image: 'photo-1473093295043-cdd812d0e601', query: 'pasta', className: 'pasta' },
+  { title: 'Fresh starts here.', label: 'STRAIGHT FROM THE GARDEN', image: 'photo-1512621776951-a57141f2eefd', query: 'salad', className: 'salad' },
+  { title: 'Save room for something sweet.', label: 'THE HAPPY ENDING', image: 'photo-1488477181946-6428a0291777', query: 'dessert', className: 'dessert' },
+];
+export default function Dashboard() {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('All recipes');
+  const [selected, setSelected] = useState<typeof ideas[number] | null>(null);
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const response = await fetch('/api/get-all-blogs');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Unable to load recipes.');
+      setBlogs(result.data || []);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to load recipes.'); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  const terms: Record<string, RegExp> = { 'Quick & easy': /quick|easy|minute|simple/i, Vegetarian: /veget|salad|paneer|tofu|lentil|mushroom/i, 'Comfort food': /pasta|soup|rice|curry|stew/i, 'Sweet treats': /sweet|cake|dessert|cookie|chocolate/i };
+  const filtered = blogs.filter(blog => blog.title.toLowerCase().includes(query.toLowerCase()) && (category === 'All recipes' || terms[category].test(blog.title)));
+  return <><Navbar/><main className="discover-page">
+    <section className="hero">
+      <div className="hero-copy"><div className="eyebrow"><span className="live-dot"/> A PLACE FOR PEOPLE WHO LOVE FOOD</div><h1>Your next<br/>great <span>craving.</span></h1><p>Every recipe has a story. Discover new favorites,<br className="desktop-break"/> share your own, and make something worth gathering for.</p><div className="hero-actions"><a className="pill-button" href="#recipes">Find your next favorite <ArrowUpRight size={18}/></a><Link className="text-link" href="/post-blogs">Share your story <ArrowRight size={17}/></Link></div><div className="hero-bottom"><span className="mini-icon"><Utensils size={17}/></span><span>From everyday cooks.<br/><strong>For extraordinary everyday meals.</strong></span></div></div>
+      <div className="hero-visual"><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85" alt="Colorful fresh bowl with vegetables and seasonal ingredients"/><div className="image-shade"/><span className="photo-index">01 / THE FRESH PERSPECTIVE</span><div className="photo-caption"><span>LESS SCROLLING. MORE SAVORING.</span><h2>Something good<br/>is always cooking.</h2></div><a href="#recipes" className="round-arrow" aria-label="Browse recipes"><ArrowDown size={23}/></a><div className="photo-sticker"><ChefHat size={23}/><span>Made with love.<br/><strong>Shared with everyone.</strong></span></div></div>
+    </section>
+    <div className="ticker"><span>GOOD FOOD, GOOD MOOD</span><span>✳</span><span>A PINCH OF CURIOSITY</span><span>✳</span><span>MAKE IT. LOVE IT. SHARE IT.</span><span>✳</span><span>YOUR TABLE, REIMAGINED</span></div>
+    <section className="recipe-section" id="recipes"><div className="section-heading"><div><div className="eyebrow">THE COMMUNITY TABLE</div><h2>Made to be discovered<span>.</span></h2></div><span className="section-note">Fresh ideas for whatever you’re craving.</span></div>
+    <div className="recipe-toolbar"><div className="category-tabs" aria-label="Filter recipes">{categories.map(item => <button key={item} onClick={() => setCategory(item)} aria-pressed={category === item} className={category === item ? 'selected' : ''}>{item}</button>)}</div><label className="recipe-search"><Search size={17}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search a craving…" aria-label="Search recipes"/></label></div>
+    {loading ? <div className="recipe-grid" aria-label="Loading recipes" aria-busy="true">{[1,2,3].map(i => <div className="recipe-skeleton" key={i}/>)}</div> : error ? <div className="collection-state" role="status"><BookOpen size={27}/><div><h3>The kitchen is taking a breather.</h3><p>{error}</p></div><button onClick={() => void load()} className="outline-button">Try again <ArrowRight size={16}/></button></div> : filtered.length ? <div className="recipe-grid">{filtered.map(blog => <BlogCard key={String(blog._id)} blog={blog} forUser={false}/>)}</div> : <div className="collection-state"><BookOpen size={27}/><div><h3>{blogs.length ? 'No recipes match this craving.' : 'Your next story starts in the kitchen.'}</h3><p>{blogs.length ? 'Try another keyword or explore a different category.' : 'Be the first to bring a favorite recipe to the table.'}</p></div><Link href="/post-blogs" className="outline-button">Share a recipe <ArrowUpRight size={16}/></Link></div>}
+    </section>
+    <section className="inspiration-section"><div className="section-heading"><div><div className="eyebrow">FOLLOW YOUR APPETITE</div><h2>A little inspiration goes a long way.</h2></div><Link href="/suggest" className="text-link">Help me decide <ArrowUpRight size={18}/></Link></div><div className="inspiration-grid">{ideas.map(idea => <button className={`idea-card ${idea.className}`} key={idea.query} onClick={() => setSelected(idea)}><img src={`https://images.unsplash.com/${idea.image}?auto=format&fit=crop&w=700&q=80`} alt=""/><div className="idea-content"><span>{idea.label}</span><h3>{idea.title}</h3><span className="idea-arrow"><ArrowUpRight size={20}/></span></div></button>)}</div></section>
+    <section className="contribute-banner"><div><span className="eyebrow">A RECIPE IS BETTER WHEN IT’S SHARED</span><h2>Got a signature dish?<br/>Pull up a chair.</h2></div><Link href="/post-blogs" className="pill-button">Add your recipe <ArrowUpRight size={18}/></Link></section>
+  </main><Footer/>{selected && <div className="inspiration-modal" onClick={() => setSelected(null)}><section role="dialog" aria-modal="true" aria-label={selected.title} onClick={e => e.stopPropagation()}><button className="modal-close" aria-label="Close inspiration" onClick={() => setSelected(null)} autoFocus><X/></button><span className="eyebrow">{selected.label}</span><h2>{selected.title}</h2><p>Explore the community’s {selected.query} recipes or head to Kitchen inspiration to create an idea with the ingredients you have.</p><Link className="pill-button" href="/dashboard#recipes">Explore recipes <Search size={17}/></Link><Link className="text-link" href="/suggest">Get kitchen inspiration <ArrowUpRight size={17}/></Link></section></div>}</>;
 }
-
-export default Page

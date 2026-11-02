@@ -6,9 +6,8 @@ import BlogModel from "@/model/Blog.model";
 import mongoose from "mongoose";
 
 export async function POST(requset: Request){
-    await dbConnect()
-
     try {
+        await dbConnect()
         const session = await getServerSession(authOptions)
         const user = session?.user
 
@@ -26,7 +25,7 @@ export async function POST(requset: Request){
         if(!result.success){
             return Response.json({
                 success: false,
-                message: result.error.format().title?._errors[0]
+                message: result.error.issues[0].message
             }, {
                 status: 400
             })

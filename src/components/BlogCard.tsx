@@ -1,99 +1,11 @@
 'use client';
-
-import { useToast } from '@/hooks/use-toast';
-import { Blog } from '@/model/Blog.model';
-import axios from 'axios';
-import React from 'react';
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
-type BlogCardProps = {
-    blog: Blog;
-    forUser: boolean;
-    onBlogDeleted?: (id: string) => void;
-};
-
-const BlogCard = ({ blog, forUser, onBlogDeleted }: BlogCardProps) => {
-    const { toast } = useToast();
-    const router = useRouter();
-
-    const handleDelete = async () => {
-        try {
-            const response = await axios.delete(`/api/delete-blog?id=${blog._id}`);
-            if (response.data.success) {
-                onBlogDeleted?.(blog._id as string); 
-                toast({ title: "Success", description: response.data.message });
-            } else {
-                toast({ title: "Error", description: response.data.message, variant: "destructive" });
-            }
-        } catch (error) {
-            console.log(error);
-            toast({ title: "Error", description: "Failed to delete the blog.", variant: "destructive" });
-        }
-    };
-
-    const handleEdit = () => {
-        router.replace(`/edit-blog/${blog._id}`);
-    };
-
-    return (
-        <div className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden">
-            <Card className="p-6">
-                <CardHeader className="mb-4">
-                    <CardTitle>
-                        <a
-                            href={`/get-individual-blog/${blog._id}`}
-                            className="text-blue-600 hover:underline"
-                        >
-                            {blog.title || "Untitled Blog"}
-                        </a>
-                    </CardTitle>
-                    <p className="text-sm text-gray-500 mt-2">
-                        {new Date(blog.createdAt).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })}
-                    </p>
-                </CardHeader>
-
-                {forUser && (
-                    <div className="flex justify-between items-center">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="flex items-center space-x-2">
-                                    <X className="h-4 w-4" />
-                                    <span>Delete</span>
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-gray-50 border border-gray-200 rounded-md shadow-lg p-4">
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-lg font-bold text-gray-800">Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription className="text-sm text-gray-600">
-                                        This action cannot be undone. This will permanently delete your blog.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter className="mt-4">
-                                    <AlertDialogCancel className="px-4 py-2 text-gray-600">Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={handleDelete}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md"
-                                    >
-                                        Continue
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                        <Button onClick={handleEdit} className="bg-blue-600 text-white px-4 py-2 rounded-md">Edit</Button>
-                    </div>
-                )}
-            </Card>
-        </div>
-    );
-};
-
-export default BlogCard;
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowUpRight, BookOpen, Pencil, Trash2 } from 'lucide-react';
+import type { Blog } from '@/model/Blog.model';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+export default function BlogCard({ blog, forUser, onBlogDeleted }: { blog: Blog; forUser: boolean; onBlogDeleted?: (id: string) => void }) {
+  const [deleting, setDeleting] = useState(false); const [error, setError] = useState('');
+  const remove = async () => { setDeleting(true); setError(''); try { const response = await fetch(`/api/delete-blog?id=${encodeURIComponent(String(blog._id))}`, { method: 'DELETE' }); const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Unable to delete recipe.'); onBlogDeleted?.(String(blog._id)); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to delete recipe.'); } finally { setDeleting(false); } };
+  return <article className="journal-card"><div className="journal-card-top"><span className="journal-icon"><BookOpen size={21}/></span><span>THE COMMUNITY COOKBOOK</span></div><Link href={`/get-individual-blog/${blog._id}`} className="journal-card-title"><h3>{blog.title || 'A kitchen story'}</h3><ArrowUpRight size={22}/></Link><div className="journal-card-bottom"><time dateTime={new Date(blog.createdAt).toISOString()}>{new Date(blog.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</time><span>Read the recipe ↗</span></div>{forUser && <div className="journal-card-actions"><Link className="text-link" href={`/edit-blog/${blog._id}`}><Pencil size={14}/>Edit</Link><AlertDialog><AlertDialogTrigger asChild><button className="delete-button" disabled={deleting}><Trash2 size={14}/>{deleting ? 'Deleting…' : 'Delete'}</button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Remove this recipe?</AlertDialogTitle><AlertDialogDescription>This will permanently delete “{blog.title}” from your cookbook.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep recipe</AlertDialogCancel><AlertDialogAction onClick={() => void remove()}>Delete recipe</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div>}{error && <p role="alert" className="form-error">{error}</p>}</article>;
+}

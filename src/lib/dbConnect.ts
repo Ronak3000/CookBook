@@ -1,25 +1,31 @@
 import mongoose from "mongoose";
+import dns from "node:dns";
 
-type ConnectionObject = {
-    isConnected?: number
-}
+// Share a pending connection across concurrent requests and development reloads.
+const globalWithMongo = globalThis as typeof globalThis & {
+  cookbookMongo?: Promise<typeof mongoose>;
+};
 
-const connection : ConnectionObject = {}
-
-export default async function dbConnect(){
-    if(connection.isConnected){
-        console.log("Db connected Aleady");
-        return
+export default async function dbConnect() {
+  if (mongoose.connection.readyState === 1) return mongoose;
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("MONGODB_URI is not configured");
+  if (!globalWithMongo.cookbookMongo) {
+    // Optional override for networks whose DNS cannot resolve Atlas SRV records.
+    const servers = process.env.MONGODB_DNS_SERVERS?.split(",").map(server => server.trim()).filter(Boolean);
+    if (servers?.length) {
+      dns.setServers(servers);
+      dns.promises.setServers(servers);
     }
-
-    try {
-        
-        const db = await mongoose.connect(process.env.MONGODB_URI || "")
-        connection.isConnected = db.connections[0].readyState
-
-        console.log('db connected');
-    } catch (error) {
-        console.log("DB did not connect due to :",error)
-        process.exit(1)
-    }
+    globalWithMongo.cookbookMongo = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
+    });
+  }
+  try {
+    return await globalWithMongo.cookbookMongo;
+  } catch (error) {
+    globalWithMongo.cookbookMongo = undefined;
+    throw error;
+  }
 }
