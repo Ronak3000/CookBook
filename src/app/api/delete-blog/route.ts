@@ -1,33 +1,17 @@
-import BlogModel from "@/model/Blog.model";
-import dbConnect from "@/lib/dbConnect";
-import mongoose from "mongoose";
-
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/options';
+import BlogModel from '@/model/Blog.model';
+import dbConnect from '@/lib/dbConnect';
+import mongoose from 'mongoose';
 export async function DELETE(request: Request) {
-    await dbConnect()
-    try {
-        const {searchParams} = new URL(request.url)
-        const blogId =  searchParams.get('id')
-        const individualBlogId = new mongoose.Types.ObjectId(blogId as string)
-        if(!individualBlogId){
-            return Response.json({
-                success: false,
-                message: "Invalid Blog Id"
-            },{status: 400})
-        }
-        const deletedBlog = await BlogModel.findByIdAndDelete(individualBlogId)
-        if(!deletedBlog){
-            return Response.json({
-                success: false,
-                message: "Failed to get individual blog"
-            },{status: 401})
-        }
-        return Response.json({
-            success: true,
-            message: "Blog deleted successfully"
-        },{status: 200})
-    } catch (error) {
-        return Response.json({
-            success: false,
-            message: `error getting Individual blogs: ${error}`
-        },{status: 500})
-    }}
+  const session = await getServerSession(authOptions);
+  if (!session?.user?._id) return Response.json({ success: false, message: 'Please sign in to delete a recipe.' }, { status: 401 });
+  const id = new URL(request.url).searchParams.get('id');
+  if (!id || !mongoose.isValidObjectId(id)) return Response.json({ success: false, message: 'Invalid recipe.' }, { status: 400 });
+  try {
+    await dbConnect();
+    const blog = await BlogModel.findOneAndDelete({ _id: id, ownedById: session.user._id });
+    if (!blog) return Response.json({ success: false, message: 'Recipe not found in your cookbook.' }, { status: 404 });
+    return Response.json({ success: true, message: 'Recipe deleted.' });
+  } catch { return Response.json({ success: false, message: 'Unable to delete your recipe.' }, { status: 503 }); }
+}

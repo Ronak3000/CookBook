@@ -3,12 +3,11 @@ import BlogModel, { Blog } from "@/model/Blog.model";
 import { searchWordSchema } from "@/schemas/searchWordSchema";
 
 export async function POST(request: Request) {
-    await dbConnect()
-
     try {
+        await dbConnect()
 
         const {searchWord} = await request.json()
-        
+
         const allBlogs = await BlogModel.find()
             .sort({ createdAt: -1 })
             .select({ _id: 1, title: 1, createdAt:1});
@@ -42,16 +41,16 @@ export async function POST(request: Request) {
                 if(blog.title.toLowerCase().includes(trimmedSearchWord.toLowerCase())) return blog
             })
         }
-        
+
 
         if(!searchSpecificBlogs || searchSpecificBlogs.length === 0){
             return Response.json({
-                success: false, 
+                success: false,
                 message: "No blogs found with the search word."
             }, {
                 status: 404
             })
-        } 
+        }
 
         return Response.json({
             success: true,

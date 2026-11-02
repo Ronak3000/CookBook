@@ -1,6 +1,5 @@
-import {z} from "zod"
+import { z } from 'zod';
 export const BlogVerificationSchema = z.object({
-    title: z.string().min(3,"Title Must be at least 3 letters long").trim(),
-    // dishImageUrl: z.string(),
-    bodyOfBlog: z.string(),
-})
+  title: z.string().trim().min(3, 'Give your recipe a title of at least 3 characters.').max(200),
+  bodyOfBlog: z.string().trim().min(10, 'Add at least 10 characters to tell your recipe’s story.').max(50000),
+});

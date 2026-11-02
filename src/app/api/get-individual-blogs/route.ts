@@ -4,9 +4,8 @@ import mongoose from "mongoose";
 import UserModel from "@/model/User.model";
 
 export async function GET(request:Request){
-    await dbConnect()
-
     try {
+        await dbConnect()
         const {searchParams} = new URL(request.url)
 
         const blogId =  searchParams.get('id')
@@ -17,7 +16,7 @@ export async function GET(request:Request){
                 message: "Invalid Blog Id"
             },{status: 400})
         }
-        
+
         const blog = await BlogModel.findById(individualBlogId)
         if(!blog){
             return Response.json({

@@ -5,9 +5,8 @@ import BlogModel from "@/model/Blog.model";
 import mongoose from "mongoose";
 
 export async function GET() {
-    await dbConnect()
-
     try {
+        await dbConnect()
         const session = await getServerSession(authOptions)
         const user = session?.user
 

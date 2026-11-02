@@ -8,10 +8,9 @@ const UsernameQuerySchema = z.object({
 })
 
 export async function GET(request: Request) {
-    
-    await dbConnect()
 
     try {
+
         const {searchParams} = new URL(request.url)
         const queryParam = {
             username: searchParams.get('username')
@@ -27,10 +26,11 @@ export async function GET(request: Request) {
 
         const {username} = result.data
 
-        const existingVerifiedUser = await UserModel.findOne({username, isVerified: true})
+        await dbConnect()
+        const existingVerifiedUser = await UserModel.findOne({username})
 
         if(existingVerifiedUser){
-            return Response.json({success: false, message: "Username already exists"}, {status: 400})
+            return Response.json({success: false, message: "Username already exists"}, {status: 200})
         }
 
         return Response.json({success: true, message: "Username is unique"}, {status: 200})
