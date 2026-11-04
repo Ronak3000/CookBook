@@ -2,41 +2,33 @@ import BlogModel from "@/model/Blog.model";
 import dbConnect from "@/lib/dbConnect";
 import mongoose from "mongoose";
 import UserModel from "@/model/User.model";
-
-export async function GET(request:Request){
-    try {
-        await dbConnect()
-        const {searchParams} = new URL(request.url)
-
-        const blogId =  searchParams.get('id')
-        const individualBlogId = new mongoose.Types.ObjectId(blogId as string)
-        if(!individualBlogId){
-            return Response.json({
-                success: false,
-                message: "Invalid Blog Id"
-            },{status: 400})
-        }
-
-        const blog = await BlogModel.findById(individualBlogId)
-        if(!blog){
-            return Response.json({
-                success: false,
-                message: "Invalid Individual Blog Id"
-            },{status: 400})
-        }
-        const ownerId = blog.ownedById
-        const individualOwnerId = new mongoose.Types.ObjectId(ownerId)
-        const owner = await UserModel.findById(individualOwnerId)
-
-        return Response.json({
-            success: true,
-            data: blog,
-            owner: owner?.username || "No owner"
-        },{status: 200})
-    } catch (error) {
-        return Response.json({
-            success: false,
-            message: `error getting Individual blogs: ${error}`
-        },{status: 500})
-    }
+export async function GET(request: Request) {
+  const id = new URL(request.url).searchParams.get("id");
+  if (!id || !mongoose.isValidObjectId(id))
+    return Response.json(
+      { success: false, message: "Invalid recipe." },
+      { status: 400 },
+    );
+  try {
+    await dbConnect();
+    const blog = await BlogModel.findById(id).lean();
+    if (!blog)
+      return Response.json(
+        { success: false, message: "This recipe is no longer available." },
+        { status: 404 },
+      );
+    const owner = await UserModel.findById(blog.ownedById)
+      .select("username")
+      .lean();
+    return Response.json({
+      success: true,
+      data: blog,
+      owner: owner?.username || "Community cook",
+    });
+  } catch {
+    return Response.json(
+      { success: false, message: "Unable to load recipe. Please try again." },
+      { status: 503 },
+    );
+  }
 }

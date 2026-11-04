@@ -9,6 +9,7 @@ import RecipeFeedControls from '@/components/RecipeFeedControls';
 export default function MyCookbook() {
   const { blogs, loading, loadingMore, error, hasMore, pages, loadMore, retry, remove } = useRecipeFeed('/api/get-user-blogs');
   return <PageShell eyebrow="YOUR PERSONAL KITCHEN JOURNAL" title="A collection with your name on it." description="The dishes you love making. The stories you love sharing.">
+    <div className="kitchen-page-tabs"><Link href="/get-user-blogs" className="active">My recipes</Link><Link href="/saved-recipes">Saved recipes</Link><Link href="/shopping-list">Shopping list</Link></div>
     <div className="collection-heading">
       <span>{loading ? 'Opening your cookbook…' : `${blogs.length} ${blogs.length === 1 ? 'recipe' : 'recipes'} loaded`}</span>
       <Link href="/post-blogs" className="pill-button">Add a recipe<ArrowUpRight size={17}/></Link>

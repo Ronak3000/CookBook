@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
 
 
   // Redirect unauthenticated users away from protected pages
-  if (!token && (url.pathname.startsWith("/post-blogs") || url.pathname.startsWith("/get-user-blogs") || url.pathname.startsWith("/edit-blog"))) {
+  if (!token && (url.pathname.startsWith("/post-blogs") || url.pathname.startsWith("/get-user-blogs") || url.pathname.startsWith("/edit-blog") || url.pathname.startsWith("/saved-recipes") || url.pathname.startsWith("/shopping-list"))) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
@@ -38,6 +38,8 @@ export const config = {
     "/post-blogs/:path*",
     "/get-user-blogs/:path*",
     "/edit-blog/:path*",
+    "/saved-recipes/:path*",
+    "/shopping-list/:path*",
     "/suggest"
   ],
 };

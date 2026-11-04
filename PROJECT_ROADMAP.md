@@ -2,6 +2,8 @@
 
 Prioritize measurable product behavior over adding infrastructure solely for a résumé.
 
+Implemented: structured recipe fields, serving adjustments, ingredient/metadata filtering, bookmarks, shopping lists, and checkable cooking mode. See KITCHEN_WORKFLOW.md. The remaining roadmap includes indexed search, grounded retrieval, evaluations, and operational work.
+
 ## 1. Structured recipes and useful search
 
 Store ingredients with quantities/units, preparation/cooking time, servings, cuisine, and explicit dietary tags. Replace title-keyword category guesses with actual metadata. Add filters, ingredient substitutions, serving-size adjustment, and a focused cooking view with checkable steps. For a larger catalog, add a text/search index rather than relying on case-insensitive substring scans. Demonstrate search relevance and a query plan using the feed indexes.

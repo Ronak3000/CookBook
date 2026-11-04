@@ -1,57 +1,48 @@
 import { getServerSession } from "next-auth";
-import { BlogVerificationSchema } from "@/schemas/blogVerificationSchema";
 import { authOptions } from "../auth/[...nextauth]/options";
+import { BlogVerificationSchema } from "@/schemas/blogVerificationSchema";
 import dbConnect from "@/lib/dbConnect";
 import BlogModel from "@/model/Blog.model";
-import mongoose from "mongoose";
-
-export async function POST(requset: Request){
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?._id)
+      return Response.json(
+        { success: false, message: "Please sign in to share a recipe." },
+        { status: 401 },
+      );
+    let body: unknown;
     try {
-        await dbConnect()
-        const session = await getServerSession(authOptions)
-        const user = session?.user
-
-        if(!session || !user){
-            return Response.json({
-                success: false,
-                message: "You have to sign in to post blogs"
-            }, {
-                status: 401
-            })
-        }
-        const {title, bodyOfBlog} = await requset.json()
-        const result = BlogVerificationSchema.safeParse({title, bodyOfBlog})
-
-        if(!result.success){
-            return Response.json({
-                success: false,
-                message: result.error.issues[0].message
-            }, {
-                status: 400
-            })
-        }
-
-        const ownedById = new mongoose.Types.ObjectId(user._id as string)
-        const newBlog = new BlogModel({
-            ownedById,
-            title,
-            bodyOfBlog,
-            createdAt: Date.now()
-        })
-
-        await newBlog.save()
-
-
-        return Response.json({
-            success: true,
-            message: "Blog posted successfully"
-        },{status: 200})
-
-    } catch (error) {
-        console.log(error)
-        return Response.json({
-            success: false,
-            message: "Something went wrong while posting the blog"
-        },{status: 500})
+      body = await request.json();
+    } catch {
+      return Response.json(
+        { success: false, message: "Send a valid recipe." },
+        { status: 400 },
+      );
     }
+    const parsed = BlogVerificationSchema.safeParse(body);
+    if (!parsed.success)
+      return Response.json(
+        { success: false, message: parsed.error.issues[0].message },
+        { status: 400 },
+      );
+    await dbConnect();
+    const blog = await BlogModel.create({
+      ...parsed.data,
+      ownedById: session.user._id,
+    });
+    return Response.json({
+      success: true,
+      message: "Recipe shared.",
+      id: String(blog._id),
+    });
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        message: "Unable to share your recipe. Please try again.",
+      },
+      { status: 503 },
+    );
+  }
 }
