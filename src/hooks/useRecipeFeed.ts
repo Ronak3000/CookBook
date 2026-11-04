@@ -6,7 +6,7 @@ type RequestState = { key: string; controller: AbortController; pending: boolean
 type CollectionState = { key: string; blogs: RecipeSummary[]; loading: boolean; loadingMore: boolean; error: string; hasMore: boolean; pages: number };
 const emptyState: CollectionState = { key: '', blogs: [], loading: true, loadingMore: false, error: '', hasMore: false, pages: 0 };
 
-export function useRecipeFeed(endpoint: string, query = '', category: RecipeCategory = 'All recipes') {
+export function useRecipeFeed(endpoint: string, query = '', category: RecipeCategory = 'All recipes', filters: { cuisine?: string; diet?: string; maxMinutes?: string } = {}) {
   const [debouncedQuery, setDebouncedQuery] = useState(query.trim());
   const [state, setState] = useState<CollectionState>(emptyState);
   const active = useRef<RequestState | null>(null);
@@ -14,7 +14,7 @@ export function useRecipeFeed(endpoint: string, query = '', category: RecipeCate
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 300);
     return () => clearTimeout(timer);
   }, [query]);
-  const key = `${endpoint}?${new URLSearchParams({ limit: '12', q: debouncedQuery, category })}`;
+  const key = `${endpoint}?${new URLSearchParams({ limit: '12', q: debouncedQuery, category, ...(filters.cuisine ? { cuisine: filters.cuisine } : {}), ...(filters.diet ? { diet: filters.diet } : {}), ...(filters.maxMinutes ? { maxMinutes: filters.maxMinutes } : {}) })}`;
 
   const fetchPage = useCallback(async (run: RequestState, append: boolean) => {
     if (run.pending || run.controller.signal.aborted) return;

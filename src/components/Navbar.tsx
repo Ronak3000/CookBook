@@ -16,6 +16,7 @@ export default function Navbar() {
     ['Discover', '/dashboard'],
     ['Kitchen inspiration', '/suggest'],
     ['My cookbook', '/get-user-blogs'],
+    ['Saved recipes', '/saved-recipes'],
   ];
 
   return <nav className="site-nav" aria-label="Main navigation" onKeyDown={event => {

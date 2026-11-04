@@ -2,8 +2,12 @@ import { z } from 'zod';
 import dbConnect from '@/lib/dbConnect';
 import { getRecipePage, parseRecipeQuery, RecipeQueryError } from '@/lib/recipePagination';
 import { recipeCategories } from '@/types/recipes';
+import { cuisines, dietaryTags } from '@/types/recipeContent';
 const searchSchema = z.object({
   searchWord: z.string().trim().max(100),
+  cuisine: z.enum(['', ...cuisines]).default(''),
+  diet: z.enum(['', ...dietaryTags]).default(''),
+  maxMinutes: z.number().int().min(1).max(2880).optional(),
   limit: z.number().int().min(1).max(36).default(12),
   cursor: z.string().max(512).optional(),
   category: z.enum(recipeCategories).default('All recipes'),
@@ -18,6 +22,9 @@ export async function POST(request: Request) {
     url.searchParams.set('q', result.data.searchWord);
     url.searchParams.set('limit', String(result.data.limit));
     url.searchParams.set('category', result.data.category);
+    url.searchParams.set('cuisine', result.data.cuisine);
+    url.searchParams.set('diet', result.data.diet);
+    if (result.data.maxMinutes) url.searchParams.set('maxMinutes', String(result.data.maxMinutes));
     if (result.data.cursor) url.searchParams.set('cursor', result.data.cursor);
     const query = parseRecipeQuery(url.href);
     await dbConnect();

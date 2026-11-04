@@ -11,7 +11,7 @@ Set these variables in Vercel for each environment you deploy:
 - GOOGLE_AI_MODEL: optional override of the recipe-generation model.
 - MONGODB_DNS_SERVERS: optional, only for a runtime whose DNS cannot resolve the Atlas cluster. The local network workaround is not automatically needed on Vercel.
 
-Local .env values are intentionally not committed or uploaded. Configure Atlas network access for your chosen hosting setup. For an existing database, run the additive index setup described in PAGINATION.md.
+Local .env values are intentionally not committed or uploaded. Configure Atlas network access for your chosen hosting setup. For an existing database, run the additive index setup described in PAGINATION.md. For bookmarks and shopping lists, also run `node scripts/create-kitchen-indexes.cjs` if automatic index creation is disabled.
 
 After changing production environment variables, redeploy. Verify the homepage, a public recipe, registration/sign-in, and your personal collection. Recipe generation also requires an available model and API quota.
 
